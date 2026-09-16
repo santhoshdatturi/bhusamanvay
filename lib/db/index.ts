@@ -20,8 +20,8 @@ export const pool =
   new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 120000,
+    connectionTimeoutMillis: 30000,
   });
 
 if (process.env.NODE_ENV !== "production") {

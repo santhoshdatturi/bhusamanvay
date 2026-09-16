@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { DocumentListView } from "@/components/documents/document-list-view";
 import * as documentsService from "@/lib/services/documents.service";
@@ -9,9 +9,9 @@ export const metadata = {
 };
 
 export default async function DocumentsPage() {
-  const session = await getSession();
+  const authResult = await requireAuth();
 
-  if (!session?.user) {
+  if (!authResult.success) {
     redirect("/auth/sign-in");
   }
 
@@ -20,11 +20,10 @@ export default async function DocumentsPage() {
   const initialData = listResult.success ? listResult.data : null;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full">
-      <DocumentListView
-        initialDocuments={initialData?.documents || []}
-        initialStats={initialData?.stats}
-      />
-    </div>
+    <DocumentListView
+      initialDocuments={initialData?.documents || []}
+      initialStats={initialData?.stats}
+      user={authResult.data}
+    />
   );
 }

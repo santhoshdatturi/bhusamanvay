@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import * as documentsService from "@/lib/services/documents.service";
@@ -24,9 +24,9 @@ export async function generateMetadata({ params }: DocumentPageProps) {
 }
 
 export default async function DocumentDetailPage({ params }: DocumentPageProps) {
-  const session = await getSession();
+  const authResult = await requireAuth();
 
-  if (!session?.user) {
+  if (!authResult.success) {
     redirect("/auth/sign-in");
   }
 

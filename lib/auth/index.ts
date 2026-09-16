@@ -53,16 +53,24 @@ export type AuthUser = AuthSession["user"] & {
  * Gracefully returns null instead of throwing unhandled APIError during Turbopack HMR / Fast Refresh.
  */
 export const getSession = cache(async (): Promise<AuthSession | null> => {
-  try {
-    const h = await headers();
-    const session = await auth.api.getSession({
-      headers: h,
-    });
-    return session as AuthSession | null;
-  } catch (error) {
-    log.warn({ error }, "Turbopack / HMR caught session retrieval error — returning null");
-    return null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const h = await headers();
+      const session = await auth.api.getSession({
+        headers: h,
+      });
+      return session as AuthSession | null;
+    } catch (error) {
+      if (attempt === 1) {
+        log.warn({ error }, "Turbopack / DB connection timeout on session check - retrying attempt 2");
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        continue;
+      }
+      log.warn({ error }, "Turbopack / HMR caught session retrieval error - returning null");
+      return null;
+    }
   }
+  return null;
 });
 
 /**
@@ -74,7 +82,7 @@ export const requireAuth = cache(async (): Promise<ServiceResult<AuthUser>> => {
     const session = await getSession();
 
     if (!session?.user) {
-      log.warn("Auth check failed — no authenticated user");
+      log.warn("Auth check failed - no authenticated user");
       return fail(ServiceErrorCode.UNAUTHORIZED);
     }
 
