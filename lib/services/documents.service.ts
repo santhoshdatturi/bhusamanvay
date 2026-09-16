@@ -47,7 +47,6 @@ export interface PaginatedDocumentsResult {
   stats: {
     total: number;
     uploaded: number;
-    processing: number;
     extracted: number;
     failed: number;
   };
@@ -159,7 +158,6 @@ export async function list(
         .select({
           total: sql<number>`count(*)::int`,
           uploaded: sql<number>`count(*) filter (where ${documents.status} = 'uploaded')::int`,
-          processing: sql<number>`count(*) filter (where ${documents.status} = 'processing')::int`,
           extracted: sql<number>`count(*) filter (where ${documents.status} = 'extracted')::int`,
           failed: sql<number>`count(*) filter (where ${documents.status} = 'failed')::int`,
         })
@@ -171,7 +169,6 @@ export async function list(
     const stats = statsResult[0] ?? {
       total: 0,
       uploaded: 0,
-      processing: 0,
       extracted: 0,
       failed: 0,
     };

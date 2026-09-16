@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DocumentUploadModal } from "./document-upload-modal";
+import { DOCUMENT_TYPES } from "@/lib/constants/documents";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { DocumentRecord } from "@/lib/db/types";
@@ -33,7 +34,6 @@ interface DocumentListViewProps {
   initialStats?: {
     total: number;
     uploaded: number;
-    processing: number;
     extracted: number;
     failed: number;
   };
@@ -41,7 +41,7 @@ interface DocumentListViewProps {
 
 export function DocumentListView({
   initialDocuments = [],
-  initialStats = { total: 0, uploaded: 0, processing: 0, extracted: 0, failed: 0 },
+  initialStats = { total: 0, uploaded: 0, extracted: 0, failed: 0 },
 }: DocumentListViewProps) {
   const [documents, setDocuments] = useState<DocumentRecord[]>(initialDocuments);
   const [stats, setStats] = useState(initialStats);
@@ -143,13 +143,6 @@ export function DocumentListView({
             <span>Uploaded</span>
           </span>
         );
-      case "processing":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium border border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400 animate-pulse">
-            <HugeiconsIcon icon={ReloadIcon} className="size-3 animate-spin" />
-            <span>Processing</span>
-          </span>
-        );
       case "extracted":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
@@ -186,7 +179,7 @@ export function DocumentListView({
       </div>
 
       {/* Summary KPI Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <button
           onClick={() => setStatusFilter("all")}
           className={cn(
@@ -219,24 +212,6 @@ export function DocumentListView({
           </div>
           <div className="text-xl font-bold text-foreground mt-1 font-mono">
             {stats.uploaded}
-          </div>
-        </button>
-
-        <button
-          onClick={() => setStatusFilter("processing")}
-          className={cn(
-            "p-3 rounded-lg border text-left transition-all",
-            statusFilter === "processing"
-              ? "border-amber-500 bg-amber-500/5 shadow-xs"
-              : "border-border bg-card hover:bg-muted/40"
-          )}
-        >
-          <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-            <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span>Processing</span>
-          </div>
-          <div className="text-xl font-bold text-foreground mt-1 font-mono">
-            {stats.processing}
           </div>
         </button>
 
@@ -340,7 +315,9 @@ export function DocumentListView({
               </TableRow>
             ) : (
               documents.map((doc) => {
-                const isItemProcessing = processingIds.has(doc.id) || doc.status === "processing";
+                const isItemProcessing = processingIds.has(doc.id);
+                const docTypeMeta = DOCUMENT_TYPES.find((t) => t.value === doc.documentType);
+                const docTypeLabel = docTypeMeta?.shortLabel || docTypeMeta?.label || doc.documentType;
 
                 return (
                   <TableRow
@@ -359,8 +336,8 @@ export function DocumentListView({
                     </TableCell>
 
                     <TableCell className="py-3">
-                      <span className="text-[11px] font-mono uppercase bg-muted px-2 py-0.5 rounded border border-border/60 text-muted-foreground font-medium">
-                        {doc.documentType}
+                      <span className="text-[11px] font-sans font-medium bg-muted/80 px-2.5 py-1 rounded-md border border-border/70 text-foreground inline-flex items-center">
+                        {docTypeLabel}
                       </span>
                     </TableCell>
 

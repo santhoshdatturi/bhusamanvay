@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft01Icon,
   Clock01Icon,
-  ReloadIcon,
   CheckmarkCircle02Icon,
   Alert02Icon,
 } from "@hugeicons/core-free-icons";
@@ -44,19 +43,6 @@ export function DocumentWorkspace({
     }
   }, [initialDocument.id]);
 
-  // If status is processing, poll every 3 seconds until completed
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (document.status === "processing") {
-      interval = setInterval(() => {
-        fetchDocumentDetails();
-      }, 3000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [document.status, fetchDocumentDetails]);
-
   const docTypeLabel =
     DOCUMENT_TYPES.find((t) => t.value === document.documentType)?.shortLabel ||
     document.documentType;
@@ -69,13 +55,6 @@ export function DocumentWorkspace({
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-sans font-medium border border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-400">
             <HugeiconsIcon icon={Clock01Icon} className="size-3" />
             <span>Uploaded</span>
-          </span>
-        );
-      case "processing":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-sans font-medium border border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400 animate-pulse">
-            <HugeiconsIcon icon={ReloadIcon} className="size-3 animate-spin" />
-            <span>Processing</span>
           </span>
         );
       case "extracted":

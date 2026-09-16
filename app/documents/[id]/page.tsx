@@ -1,5 +1,4 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import * as documentsService from "@/lib/services/documents.service";
@@ -25,9 +24,7 @@ export async function generateMetadata({ params }: DocumentPageProps) {
 }
 
 export default async function DocumentDetailPage({ params }: DocumentPageProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getSession();
 
   if (!session?.user) {
     redirect("/auth/sign-in");

@@ -124,7 +124,7 @@ export function DocumentUploadModal({ onSuccess, trigger }: DocumentUploadModalP
     })();
 
     toast.promise(uploadPromise, {
-      loading: `Uploading "${title.trim()}"...`,
+      loading: `Uploading ${title.trim()}`,
       success: () => `Document uploaded successfully! Redirecting to workspace...`,
       error: (err) => err instanceof Error ? err.message : "Upload failed",
     });

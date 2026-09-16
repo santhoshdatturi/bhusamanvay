@@ -6,3 +6,4 @@ export { AccountHoldingView } from "./account-holding-view";
 export { EncumbranceView } from "./encumbrance-view";
 export { SpatialMapView } from "./spatial-map-view";
 export { PropertyCardView } from "./property-card-view";
+export { CanonicalExtractedFieldsView } from "../canonical-extracted-fields-view";

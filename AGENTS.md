@@ -70,14 +70,13 @@ Consistency is for the model as much as for us. Pick the existing word, don't co
 
 - **CRITICAL REQUIREMENT - READ SKILLS FIRST**: BEFORE starting ANY work (coding, planning, or designing), you MUST use the `view_file` tool to explicitly read the `SKILL.md` file for any relevant skills provided in your context or located in `.agents/skills/`. DO NOT rely solely on your general knowledge.
 - **Proactive Skill Utilization**: Always evaluate the current task and proactively use relevant agent skills to complete it. For example, if the task involves database operations or auth, you must read the `neon-drizzle`, `neon-auth`, or `neon-postgres` `SKILL.md` file first.
-- **Configured Skills**: Reference the `skills-lock.json` file in the workspace root to see the available skills for this project.
 
 # Core Application Guidelines
 
 - **Timezone Handling**: Never rely on server-side `Intl.DateTimeFormat` or `date-fns` formatting for user-facing times, as it will default to the server's system timezone (usually UTC). Always pass raw ISO date strings to **Client Components** and format them there so they automatically reflect the user's local timezone.
+- **UI Human-Readable Labels for Enums & Types**: Never render raw database enum keys, snake_case strings, or uppercase identifiers directly in the UI (e.g., `SPATIAL_MAP`, `PROPERTY_CARD`, `account_holding`). Always map enum values to curated human-friendly labels (e.g., from `DOCUMENT_TYPES` or a label mapping dictionary) using standard title casing.
 - **Verifiable Actions & Secrets**:
   - **Never use shared secret codes**: Do not store or display a global "secret code" for verifiable actions; users can inspect the page and exploit this.
-  - **Physical/Offline Verification**: Use client-side generated QR Codes that encode a unique, per-user payload.
   - **Digital/Online Verification**: Intercept action buttons via a Server Action to mark status in the database *before* redirecting.
 
 # Architecture: Where things live
@@ -108,7 +107,7 @@ Consistency is for the model as much as for us. Pick the existing word, don't co
 This section is a failure log, not a wishlist. Every line below exists because it went wrong at least once. When you make a mistake, get corrected, or discover something about this codebase that wasn't written down, add one line to the failure log below, in the imperative, describing the correct behaviour.
 
 ## Failure log
-- Zod schemas, Services, and Server Actions used a mix of `snake_case` and `camelCase`, causing excessive manual mapping and typing issues. Standardize on `camelCase` across the stack to match Drizzle TS properties natively.
+- Zod schemas, Services, used a mix of `snake_case` and `camelCase`, causing excessive manual mapping and typing issues. Standardize on `camelCase` across the stack to match Drizzle TS properties natively.
 - Zod enums and UI fields diverged from the database schema because Zod redefined string literals. Always use `.enumValues` from `enums.ts` (e.g., `z.enum(venueTypeEnum.enumValues)`) for a single source of truth.
 - `z.ZodIssueCode` is deprecated. Use raw string literals (e.g., `"custom"`) instead.
 - A schema push failed with `42P07: relation already exists` because a `uniqueIndex` was explicitly declared with the exact same name as a `primaryKey` on the same columns. Primary keys automatically create a unique index; do not declare redundant unique indexes.
@@ -118,3 +117,4 @@ This section is a failure log, not a wishlist. Every line below exists because i
 - Manual Zod schemas drifted from the database schema. Always use `createInsertSchema` from `drizzle-zod` as the base schema to ensure synchronization, and derive update schemas with `.partial()`. Customize database columns directly in `createInsertSchema` rather than omitting and re-extending them; use `.extend({ ... })` exclusively for non-database fields.
 - Manual property mapping in `.values()` and `.set()` caused bugs when fields were added to schemas. Always use the object spread method (`...data`) in Drizzle service queries when passing strictly validated Zod payload objects, without redundantly re-mapping nullable fields.
 - Do not run database migration or generation commands (`db:generate`, `db:migrate`, `db:push`) unprompted without explicit user instruction.
+- Never render raw database enum keys or uppercase identifiers (e.g., `SPATIAL_MAP`, `PROPERTY_CARD`, `account_holding`) in user-facing UI; always map them to human-readable labels (e.g., via `DOCUMENT_TYPES` or dedicated label lookup maps).

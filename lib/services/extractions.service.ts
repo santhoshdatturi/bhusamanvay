@@ -29,10 +29,7 @@ export async function processDocument(
     }
     const document = docResult.data;
 
-    // 2. Mark document as processing
-    await documentsService.updateStatus(documentId, "processing");
-
-    // 3. Obtain file bytes from storage
+    // 2. Obtain file bytes from storage
     const fileBytesResult = await filesService.getFileContentBytes(document.fileId);
     if (!fileBytesResult.success) {
       log.error({ fileId: document.fileId }, "Could not fetch document file content from storage");

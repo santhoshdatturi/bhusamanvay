@@ -22,16 +22,7 @@ import { Label } from "@/components/ui/label";
 import { INDIAN_STATES } from "@/lib/constants/states";
 import { DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS } from "@/lib/constants/documents";
 import { FieldConfidenceBadge } from "./field-confidence-badge";
-import {
-  OwnershipView,
-  ParcelView,
-  CultivationView,
-  MutationView,
-  AccountHoldingView,
-  EncumbranceView,
-  SpatialMapView,
-  PropertyCardView,
-} from "./views";
+import { CanonicalExtractedFieldsView } from "./canonical-extracted-fields-view";
 import { toast } from "sonner";
 import type { DocumentRecord } from "@/lib/db/types";
 import type { StructuredLandRecordExtraction } from "@/lib/validations/extractions";
@@ -340,7 +331,7 @@ export function ExtractionPanel({
         )}
 
         {/* State 2: Processing */}
-        {(status === "processing" || isProcessing) && (
+        {isProcessing && (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-4">
             <div className="relative size-12">
               <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
@@ -490,55 +481,12 @@ export function ExtractionPanel({
 
         {/* State 4: Extracted or Committed Successfully */}
         {(status === "extracted" || status === "committed") && !isProcessing && (
-          <div className="space-y-3">
-            {/* Document-Type Specific View Component with Editing capability */}
-            {(() => {
-              switch (document.documentType) {
-                case "ownership":
-                  return (
-                    <OwnershipView
-                      data={extractedData}
-                      isEditing={isEditing}
-                      onChange={handleDataChange}
-                    />
-                  );
-                case "parcel":
-                  return (
-                    <ParcelView
-                      data={extractedData}
-                      isEditing={isEditing}
-                      onChange={handleDataChange}
-                    />
-                  );
-                case "property_card":
-                  return (
-                    <PropertyCardView
-                      data={extractedData}
-                      isEditing={isEditing}
-                      onChange={handleDataChange}
-                    />
-                  );
-                case "mutation":
-                  return <MutationView data={extractedData} />;
-                case "cultivation":
-                  return <CultivationView data={extractedData} />;
-                case "account_holding":
-                  return <AccountHoldingView data={extractedData} />;
-                case "encumbrance":
-                  return <EncumbranceView data={extractedData} />;
-                case "spatial_map":
-                  return <SpatialMapView data={extractedData} />;
-                default:
-                  return (
-                    <OwnershipView
-                      data={extractedData}
-                      isEditing={isEditing}
-                      onChange={handleDataChange}
-                    />
-                  );
-              }
-            })()}
-          </div>
+          <CanonicalExtractedFieldsView
+            documentType={document.documentType}
+            data={extractedData}
+            isEditing={isEditing}
+            onChange={handleDataChange}
+          />
         )}
       </div>
     </div>

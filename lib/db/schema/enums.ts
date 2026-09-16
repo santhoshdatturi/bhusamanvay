@@ -31,7 +31,6 @@ export const documentTypeEnum = pgEnum("document_type", [
 
 export const documentStatusEnum = pgEnum("document_status", [
   "uploaded",
-  "processing",
   "extracted",
   "committed",
   "failed",
