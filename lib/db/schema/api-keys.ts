@@ -10,6 +10,7 @@ export const apiKeys = pgTable(
     tokenHash: text("token_hash").notNull(),
     maskedToken: text("masked_token").notNull(),
     scopes: text("scopes").array().notNull(),
+    allowedState: text("allowed_state"),
     expiresAt: timestamp("expires_at", { mode: "string" }),
     lastUsedAt: timestamp("last_used_at", { mode: "string" }),
     revokedAt: timestamp("revoked_at", { mode: "string" }),

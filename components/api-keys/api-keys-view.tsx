@@ -88,10 +88,9 @@ export function ApiKeysView({ initialKeys, user }: ApiKeysViewProps) {
   const formatDate = (isoString?: string | null) => {
     if (!isoString) return "Never";
     try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString(undefined, {
-        month: "short",
+      return new Date(isoString).toLocaleDateString("en-GB", {
         day: "numeric",
+        month: "short",
         year: "numeric",
       });
     } catch {

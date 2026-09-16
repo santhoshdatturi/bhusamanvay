@@ -42,7 +42,7 @@ export async function create(
       );
     }
 
-    const { name, scopes, expiresInDays } = inputValidation.data;
+    const { name, scopes, expiresInDays, allowedState } = inputValidation.data;
 
     // Generate high-entropy secret token
     const randomHex = crypto.randomBytes(24).toString("hex");
@@ -67,6 +67,7 @@ export async function create(
       tokenHash,
       maskedToken,
       scopes,
+      allowedState: allowedState ?? null,
       expiresAt,
       createdBy: createdById,
     };
@@ -190,11 +191,18 @@ export async function revoke(id: string): Promise<ServiceResult<ApiKeyRecord>> {
 
 /**
  * Verify a raw Bearer token against database hashes.
- * Validates status (not revoked, not expired) and optional required scopes.
+ *
+ * Validates:
+ *  - Token format and existence
+ *  - Not revoked / not expired
+ *  - Required scopes (admin:* bypasses)
+ *  - State restriction: if the key has allowedStates and a requestState is
+ *    provided, the requestState must be in allowedStates.
  */
 export async function verify(
   rawToken: string,
-  requiredScopes?: ApiScope[]
+  requiredScopes?: ApiScope[],
+  requestState?: string
 ): Promise<ServiceResult<ApiKeyRecord>> {
   try {
     if (!rawToken || !rawToken.startsWith("bsv_live_")) {
@@ -226,19 +234,38 @@ export async function verify(
       return fail(ServiceErrorCode.UNAUTHORIZED, "API token has expired");
     }
 
-    // Check required scopes
-    if (requiredScopes && requiredScopes.length > 0) {
-      const hasFullAdmin = key.scopes.includes("admin:*");
-      if (!hasFullAdmin) {
-        const hasAllScopes = requiredScopes.every((scope) =>
-          key.scopes.includes(scope)
+    const hasFullAdmin = key.scopes.includes("admin:*");
+
+    // Check required scopes (admin:* bypasses)
+    if (requiredScopes && requiredScopes.length > 0 && !hasFullAdmin) {
+      const hasAllScopes = requiredScopes.every((scope) =>
+        key.scopes.includes(scope)
+      );
+      if (!hasAllScopes) {
+        return fail(
+          ServiceErrorCode.FORBIDDEN,
+          "API token does not possess required scopes"
         );
-        if (!hasAllScopes) {
-          return fail(
-            ServiceErrorCode.FORBIDDEN,
-            "API token does not possess required scopes"
-          );
-        }
+      }
+    }
+
+    // Check state restriction (admin:* bypasses)
+    if (
+      !hasFullAdmin &&
+      key.allowedState !== null &&
+      key.allowedState !== undefined
+    ) {
+      if (!requestState) {
+        return fail(
+          ServiceErrorCode.FORBIDDEN,
+          "This API token is restricted to a specific state. Provide a state parameter."
+        );
+      }
+      if (key.allowedState !== requestState) {
+        return fail(
+          ServiceErrorCode.FORBIDDEN,
+          `This API token is not authorized to access data for state: ${requestState}`
+        );
       }
     }
 
