@@ -70,6 +70,30 @@ export function CanonicalExtractedFieldsView({
     onChange(next);
   };
 
+  const rawRecords: ParcelRecordItem[] =
+    data.records && data.records.length > 0
+      ? data.records
+      : data.owners && data.owners.length > 0
+      ? data.owners.map((o) => ({
+          surveyNumber: o.surveyNumber || data.parcelIdentifiers?.surveyNumber?.value || "",
+          subDivision: o.subDivision || data.parcelIdentifiers?.subDivision?.value || "",
+          plotNumber: data.parcelIdentifiers?.plotNumber?.value || "",
+          khataNumber: o.khataNumber || data.parcelIdentifiers?.khataNumber?.value || "",
+          ownerName: o.name,
+          relativeName: o.relativeName,
+          relationshipType: o.relationshipType,
+          address: data.location?.village?.value || "",
+          area: data.extent?.totalArea?.value || "",
+          areaUnit: data.extent?.areaUnit?.value || "Ha",
+          natureOfPossession: o.ownershipType || "",
+          landClassification: data.extent?.landClassification?.value || "",
+          remarksOrEncumbrances: "",
+          share: o.share,
+          confidence: o.confidence ?? 95,
+          evidence: o.evidence,
+        }))
+      : [];
+
   const updateRecordField = (
     idx: number,
     field: keyof ParcelRecordItem,
@@ -77,16 +101,33 @@ export function CanonicalExtractedFieldsView({
   ) => {
     handleUpdate((prev) => {
       if (!prev.records || prev.records.length === 0) {
-        prev.records = JSON.parse(JSON.stringify(data.records || []));
+        prev.records = JSON.parse(JSON.stringify(rawRecords));
       }
-      if (prev.records[idx]) {
-        (prev.records[idx] as unknown as Record<string, unknown>)[field] = value;
-        prev.records[idx].confidence = 100;
+      if (!prev.records[idx]) {
+        prev.records[idx] = {
+          surveyNumber: "",
+          subDivision: "",
+          plotNumber: "",
+          khataNumber: "",
+          ownerName: "",
+          relativeName: "",
+          relationshipType: "",
+          address: "",
+          area: "",
+          areaUnit: "Ha",
+          natureOfPossession: "",
+          landClassification: "",
+          remarksOrEncumbrances: "",
+          share: "",
+          confidence: 95,
+          evidence: "Manual edit",
+        };
       }
-      if (idx === 0 && prev.owners?.[0]) {
-        if (field === "ownerName") prev.owners[0].name = value;
-        if (field === "relativeName") prev.owners[0].relativeName = value;
-        if (field === "relationshipType") prev.owners[0].relationshipType = value;
+      (prev.records[idx] as unknown as Record<string, unknown>)[field] = value;
+      if (prev.owners?.[idx]) {
+        if (field === "ownerName") prev.owners[idx].name = value;
+        if (field === "relativeName") prev.owners[idx].relativeName = value;
+        if (field === "relationshipType") prev.owners[idx].relationshipType = value;
       }
       return prev;
     });
@@ -112,7 +153,7 @@ export function CanonicalExtractedFieldsView({
           if (!prev.location) prev.location = {};
           prev.location.state = {
             value: val,
-            confidence: 100,
+            confidence: prev.location.state?.confidence ?? 95,
             evidence: prev.location.state?.evidence || "Manual edit",
           };
           return prev;
@@ -129,7 +170,7 @@ export function CanonicalExtractedFieldsView({
           if (!prev.location) prev.location = {};
           prev.location.district = {
             value: val,
-            confidence: 100,
+            confidence: prev.location.district?.confidence ?? 95,
             evidence: prev.location.district?.evidence || "Manual edit",
           };
           return prev;
@@ -146,7 +187,7 @@ export function CanonicalExtractedFieldsView({
           if (!prev.location) prev.location = {};
           prev.location.taluk = {
             value: val,
-            confidence: 100,
+            confidence: prev.location.taluk?.confidence ?? 95,
             evidence: prev.location.taluk?.evidence || "Manual edit",
           };
           return prev;
@@ -163,7 +204,7 @@ export function CanonicalExtractedFieldsView({
           if (!prev.location) prev.location = {};
           prev.location.village = {
             value: val,
-            confidence: 100,
+            confidence: prev.location.village?.confidence ?? 95,
             evidence: prev.location.village?.evidence || "Manual edit",
           };
           return prev;
@@ -184,7 +225,7 @@ export function CanonicalExtractedFieldsView({
           if (!prev.parcelIdentifiers) prev.parcelIdentifiers = {};
           prev.parcelIdentifiers.khataNumber = {
             value: val,
-            confidence: 100,
+            confidence: prev.parcelIdentifiers.khataNumber?.confidence ?? 95,
             evidence: prev.parcelIdentifiers.khataNumber?.evidence || "Manual edit",
           };
           return prev;
@@ -210,7 +251,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.parcelIdentifiers) prev.parcelIdentifiers = {};
             prev.parcelIdentifiers.plotNumber = {
               value: val,
-              confidence: 100,
+              confidence: prev.parcelIdentifiers.plotNumber?.confidence ?? 95,
               evidence: prev.parcelIdentifiers.plotNumber?.evidence || "Manual edit",
             };
             return prev;
@@ -236,13 +277,12 @@ export function CanonicalExtractedFieldsView({
                   share: "",
                   ownershipType: "",
                   idReference: "",
-                  confidence: 100,
+                  confidence: 95,
                   evidence: "Manual edit",
                 },
               ];
             } else {
               prev.owners[0].name = val;
-              prev.owners[0].confidence = 100;
             }
             return prev;
           }),
@@ -282,7 +322,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.extent) prev.extent = {};
             prev.extent.landClassification = {
               value: val,
-              confidence: 100,
+              confidence: prev.extent.landClassification?.confidence ?? 95,
               evidence: prev.extent.landClassification?.evidence || "Manual edit",
             };
             return prev;
@@ -300,7 +340,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.extent) prev.extent = {};
             prev.extent.totalArea = {
               value: val,
-              confidence: 100,
+              confidence: prev.extent.totalArea?.confidence ?? 95,
               evidence: prev.extent.totalArea?.evidence || "Manual edit",
             };
             return prev;
@@ -317,7 +357,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.extent) prev.extent = {};
             prev.extent.landRevenueTax = {
               value: val,
-              confidence: 100,
+              confidence: prev.extent.landRevenueTax?.confidence ?? 95,
               evidence: prev.extent.landRevenueTax?.evidence || "Manual edit",
             };
             return prev;
@@ -356,7 +396,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.parcelIdentifiers) prev.parcelIdentifiers = {};
             prev.parcelIdentifiers.surveyNumber = {
               value: val,
-              confidence: 100,
+              confidence: prev.parcelIdentifiers.surveyNumber?.confidence ?? 95,
               evidence: prev.parcelIdentifiers.surveyNumber?.evidence || "Manual edit",
             };
             return prev;
@@ -374,7 +414,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.parcelIdentifiers) prev.parcelIdentifiers = {};
             prev.parcelIdentifiers.subDivision = {
               value: val,
-              confidence: 100,
+              confidence: prev.parcelIdentifiers.subDivision?.confidence ?? 95,
               evidence: prev.parcelIdentifiers.subDivision?.evidence || "Manual edit",
             };
             return prev;
@@ -392,7 +432,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.parcelIdentifiers) prev.parcelIdentifiers = {};
             prev.parcelIdentifiers.plotNumber = {
               value: val,
-              confidence: 100,
+              confidence: prev.parcelIdentifiers.plotNumber?.confidence ?? 95,
               evidence: prev.parcelIdentifiers.plotNumber?.evidence || "Manual edit",
             };
             return prev;
@@ -410,7 +450,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.extent) prev.extent = {};
             prev.extent.totalArea = {
               value: val,
-              confidence: 100,
+              confidence: prev.extent.totalArea?.confidence ?? 95,
               evidence: prev.extent.totalArea?.evidence || "Manual edit",
             };
             return prev;
@@ -427,7 +467,7 @@ export function CanonicalExtractedFieldsView({
             if (!prev.extent) prev.extent = {};
             prev.extent.landClassification = {
               value: val,
-              confidence: 100,
+              confidence: prev.extent.landClassification?.confidence ?? 95,
               evidence: prev.extent.landClassification?.evidence || "Manual edit",
             };
             return prev;
@@ -561,29 +601,6 @@ export function CanonicalExtractedFieldsView({
     });
 
     // 2. Add Multi-Record groups if records exist
-    const rawRecords = data.records && data.records.length > 0
-      ? data.records
-      : data.owners && data.owners.length > 0
-      ? data.owners.map((o) => ({
-          surveyNumber: o.surveyNumber || pId?.surveyNumber?.value || "",
-          subDivision: o.subDivision || pId?.subDivision?.value || "",
-          plotNumber: pId?.plotNumber?.value || "",
-          khataNumber: o.khataNumber || pId?.khataNumber?.value || "",
-          ownerName: o.name,
-          relativeName: o.relativeName,
-          relationshipType: o.relationshipType,
-          address: "",
-          area: extent?.totalArea?.value || "",
-          areaUnit: extent?.areaUnit?.value || "Ha",
-          natureOfPossession: o.ownershipType || "",
-          landClassification: extent?.landClassification?.value || "",
-          remarksOrEncumbrances: "",
-          share: o.share,
-          confidence: o.confidence,
-          evidence: o.evidence,
-        }))
-      : [];
-
     if (rawRecords.length > 0) {
       rawRecords.forEach((rec, idx) => {
         const recordFields: ExtractedFieldRow[] = [
@@ -798,10 +815,10 @@ export function CanonicalExtractedFieldsView({
                     {/* Column 2: Confidence */}
                     <TableCell className="py-2 px-3 align-middle">
                       {field.confidence !== undefined ? (
-                        <FieldConfidenceBadge confidence={field.confidence} />
+                        <FieldConfidenceBadge confidence={field.confidence} value={field.value} />
                       ) : (
                         <span className="text-[11px] text-muted-foreground font-mono">
-                          —
+                          -
                         </span>
                       )}
                     </TableCell>
@@ -823,7 +840,7 @@ export function CanonicalExtractedFieldsView({
                               : "font-semibold"
                           } text-foreground break-words`}
                         >
-                          {field.value || "—"}
+                          {field.value || "-"}
                         </span>
                       )}
                     </TableCell>

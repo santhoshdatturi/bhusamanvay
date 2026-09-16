@@ -153,15 +153,15 @@ export function ExtractionPanel({
 
   return (
     <div className="flex flex-col h-full rounded-lg border border-border bg-card shadow-xs overflow-hidden">
-      {/* Streamlined Header Bar with identical h-11 height */}
-      <div className="h-11 px-3.5 border-b border-border bg-muted/40 shrink-0 flex items-center justify-between">
+      {/* Streamlined Header Bar */}
+      <div className="h-11 px-3 border-b border-border bg-muted/40 shrink-0 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <HugeiconsIcon icon={Layers01Icon} className="size-4 shrink-0 text-primary" />
           <h2 className="text-xs font-semibold tracking-tight text-foreground font-sans truncate">
             {docTypeLabel}
           </h2>
-          {confidenceScore !== null && confidenceScore !== undefined && status === "extracted" && (
-            <FieldConfidenceBadge confidence={hasEdits ? 100 : confidenceScore} />
+          {confidenceScore !== null && confidenceScore !== undefined && (status === "extracted" || status === "committed") && (
+            <FieldConfidenceBadge confidence={confidenceScore} />
           )}
         </div>
 
@@ -170,11 +170,11 @@ export function ExtractionPanel({
           {(status === "extracted" || status === "committed") && (
             <Button
               type="button"
-              variant={isEditing ? "default" : "outline"}
+              variant={isEditing ? "secondary" : "outline"}
               size="xs"
               onClick={() => setIsEditing(!isEditing)}
               disabled={isProcessing || isCommitting}
-              className="gap-1 font-sans text-xs h-7 px-2.5 transition-all"
+              className="gap-1 font-sans text-xs h-7 px-2 transition-all"
               title={isEditing ? "Done editing" : "Edit extracted fields"}
             >
               <HugeiconsIcon icon={Edit02Icon} className="size-3.5" />
@@ -182,15 +182,15 @@ export function ExtractionPanel({
             </Button>
           )}
 
-          {/* Clear Edits Button (when reviewer has modified values) */}
+          {/* Clear Edits Button */}
           {hasEdits && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="xs"
               onClick={handleClearEdits}
               disabled={isCommitting}
-              className="font-sans text-xs h-7 px-2.5 border-rose-500/40 text-rose-600 dark:text-rose-400 bg-rose-500/5 hover:bg-rose-500/10"
+              className="font-sans text-xs h-7 px-2 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10"
               title="Clear modifications and revert to saved record"
             >
               <span>Clear</span>
@@ -203,7 +203,7 @@ export function ExtractionPanel({
               size="xs"
               onClick={handleSaveMetadataAndProcess}
               disabled={isProcessing || isCommitting || isSavingMeta}
-              className="min-w-[92px] justify-center font-sans text-xs h-7 px-2.5 transition-all"
+              className="font-sans text-xs h-7 px-2 transition-all"
             >
               {isProcessing ? (
                 <HugeiconsIcon
@@ -224,7 +224,7 @@ export function ExtractionPanel({
               size="xs"
               onClick={handleCommit}
               disabled={isProcessing || isCommitting}
-              className="min-w-[124px] justify-center font-sans text-xs h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all"
+              className="font-sans text-xs h-7 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all"
             >
               {isCommitting ? (
                 <HugeiconsIcon
@@ -232,7 +232,7 @@ export function ExtractionPanel({
                   className="size-3.5 animate-spin"
                 />
               ) : (
-                <span className="inline-flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1">
                   <HugeiconsIcon
                     icon={CheckmarkCircle02Icon}
                     className="size-3.5"
@@ -244,9 +244,9 @@ export function ExtractionPanel({
           )}
 
           {status === "committed" && !isEditing && !hasEdits && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-sans font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-md">
-              <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-3.5" />
-              <span>Verified & Registered</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-sans font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-3" />
+              <span>Registered</span>
             </span>
           )}
         </div>
