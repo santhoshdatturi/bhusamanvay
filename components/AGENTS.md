@@ -23,7 +23,7 @@
     - "Eyebrow" subheadings.
     - Small badges/tags.
     - Numbers, stats, and data (use `font-mono tabular-nums`).
-- **Punctuation**: Avoid using em-dashes (`—`). Use other relevant symbols (bullets, standard dashes, layout spacing) instead.
+- **Punctuation**: Never use em-dashes (`—`). Use commas, periods, or layout spacing instead.
 - **Form Controls for Small Sets**: When presenting binary or very small sets of options (e.g., Status, Modes, Types), prefer `RadioGroup` over `Select`. It reduces clicks and makes options immediately visible.
 - **Visual Alignment & Theming**:
   - Use **CSS Grid** to perfectly align sequential labels and values rather than relying on flex margins or padding.
@@ -37,3 +37,16 @@ A green test suite tells you nothing about whether the screen looks right.
 - Screenshot every screen you touch, at least once, and look at it before you say it's done.
 - Check dark mode.
 - Look specifically for: clipped or truncated text, overlapping views, content under the safe area, missing empty state, missing loading state.
+
+# Loading States
+
+- **No ellipsis**. Never use `...` or `…` to indicate loading anywhere in the UI. Not in buttons, not in labels, not in placeholders. This is a hard rule.
+- **No text changes**. A button's label must not change between idle and loading (no "Save" → "Saving...").
+- **Spinner only**. Show a `Loading03Icon` with `animate-spin` in place of the button's icon. If the button is icon-only, swap the icon. If it has text + icon, swap only the icon.
+- **Preserve size**. Use `min-w-[…]` or equivalent so the button does not resize during loading.
+- **Disable while loading**. Always set `disabled` to prevent double-clicks.
+
+# Destructive Actions
+
+- **No confirmation dialogs**. Do not show "Are you sure?" modals for revoke/delete. Trigger the action immediately.
+- **Toast feedback only**. Wrap the server action in `toast.promise` with short loading/success/error messages using the entity name (e.g., `Revoking {name}…` / `{name} revoked`).

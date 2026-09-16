@@ -20,7 +20,7 @@ export default async function DocumentsPage() {
   const initialData = listResult.success ? listResult.data : null;
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] p-6 max-w-7xl mx-auto w-full">
+    <div className="p-6 max-w-7xl mx-auto w-full">
       <DocumentListView
         initialDocuments={initialData?.documents || []}
         initialStats={initialData?.stats}

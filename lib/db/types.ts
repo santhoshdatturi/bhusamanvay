@@ -13,6 +13,7 @@ import type {
   encumbrances,
   spatialMaps,
   propertyCards,
+  apiKeys,
 } from "./schema";
 import { userRoleEnum, stateEnum } from "./schema/enums";
 
@@ -20,6 +21,8 @@ import { userRoleEnum, stateEnum } from "./schema/enums";
 export type UserRecord = typeof users.$inferSelect;
 export type FileRecord = typeof files.$inferSelect;
 export type DocumentRecord = typeof documents.$inferSelect;
+export type ApiKeyRecord = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
 
 export type AuthUserRecord = typeof users.$inferSelect;
 export type AuthSessionRecord = typeof sessions.$inferSelect;
