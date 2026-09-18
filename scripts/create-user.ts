@@ -38,7 +38,7 @@ function parseArgs() {
 
 async function main() {
   console.log("==================================================");
-  console.log("       BhuSamanvay — User Creation Script         ");
+  console.log("       BhuSamanvay: User Creation Script          ");
   console.log("==================================================\n");
 
   const parsed = parseArgs();

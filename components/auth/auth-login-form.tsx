@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Logo } from "@/components/ui/logo";
 import { useRouter } from "next/navigation";
 import {
   Mail01Icon,
@@ -23,39 +24,41 @@ export function AuthLoginForm() {
 
   useEffect(() => {
     if (session?.user && !isPending) {
-      router.replace("/");
+      router.push("/documents");
     }
-  }, [session, router, isPending]);
+  }, [session, isPending, router]);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Please enter email and password");
+      setError("Please fill in all fields");
       return;
     }
 
     setIsLoading(true);
-    setError("");
+    setError(null);
 
     try {
-      const { error: signInError } = await authClient.signIn.email({
+      const res = await authClient.signIn.email({
         email,
         password,
       });
 
-      if (signInError) {
-        const msg = signInError.message || "Invalid email or password";
-        setError(msg);
-        toast.error("Login failed", { description: msg });
+      if (res.error) {
+        setError(res.error.message || "Failed to sign in");
+        toast.error("Login failed", {
+          description: res.error.message,
+        });
       } else {
-        toast.success("Successfully logged in");
-        router.push("/");
+        toast.success("Welcome back!");
+        router.push("/documents");
+        router.refresh();
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Invalid email or password";
@@ -75,9 +78,7 @@ export function AuthLoginForm() {
 
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-950 font-bold text-xl tracking-tight border border-zinc-200/80 dark:border-zinc-800">
-            BS
-          </div>
+          <Logo size={48} className="size-12 text-foreground shrink-0" />
           <h1 className="font-sans text-2xl font-bold tracking-tight">
             BhuSamanvay
           </h1>

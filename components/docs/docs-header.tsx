@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { DocsMobileNav } from "@/components/docs/docs-mobile-nav";
+import { ModeToggle } from "@/components/theme-toggle";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { cn } from "@/lib/utils";
 
 export function DocsHeader() {
   return (
@@ -13,8 +16,9 @@ export function DocsHeader() {
           <DocsMobileNav />
           <Link
             href="/docs"
-            className="flex items-center gap-2 transition-opacity hover:opacity-90"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
           >
+            <Logo size={26} className="size-6.5 text-foreground shrink-0" />
             <span className="font-sans font-bold text-sm sm:text-base tracking-tight text-foreground">
               BhuSamanvay
             </span>
@@ -29,19 +33,21 @@ export function DocsHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-muted-foreground hover:text-foreground"
-            render={<Link href="/api-keys" />}
+          <Link
+            href="/api-keys"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "text-xs text-muted-foreground hover:text-foreground"
+            )}
           >
             API Keys
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 text-xs text-foreground font-medium"
-            render={<Link href="/documents" />}
+          </Link>
+          <Link
+            href="/documents"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "h-8 gap-1.5 text-xs text-foreground font-medium"
+            )}
           >
             <span>Dashboard</span>
             <HugeiconsIcon
@@ -49,7 +55,8 @@ export function DocsHeader() {
               className="size-3 text-muted-foreground"
               data-icon="inline-end"
             />
-          </Button>
+          </Link>
+          <ModeToggle />
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Sidebar,
@@ -22,7 +23,7 @@ import {
   File01Icon,
   Key01Icon,
   Logout01Icon,
-  Layers01Icon,
+  Book02Icon,
 } from "@hugeicons/core-free-icons";
 import { authClient } from "@/lib/auth/client";
 import type { AuthUser } from "@/lib/auth";
@@ -59,16 +60,20 @@ export function AppSidebar({ user }: AppSidebarProps) {
       isActive: pathname.startsWith("/api-keys"),
       badge: user.role === "admin" ? "Admin" : undefined,
     },
+    {
+      title: "API Docs",
+      href: "/docs",
+      icon: Book02Icon,
+      isActive: pathname.startsWith("/docs"),
+    },
   ];
 
   return (
     <Sidebar collapsible="icon">
       {/* Brand Header */}
       <SidebarHeader>
-        <div className="flex items-center gap-3 px-1 py-1.5">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-            <HugeiconsIcon icon={Layers01Icon} className="size-4" strokeWidth={2} />
-          </div>
+        <div className="flex items-center gap-2.5 px-1.5 py-2">
+          <Logo size={32} className="size-8 shrink-0 text-foreground" />
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold tracking-tight text-foreground truncate">
               BhuSamanvay

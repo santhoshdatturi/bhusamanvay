@@ -26,10 +26,20 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "BhuSamanvay",
+    default: "BhuSamanvay | Unified Indian Land Records Digitization Platform",
     template: "%s | BhuSamanvay",
   },
-  description: "BhuSamanvay Platform",
+  description:
+    "Intelligent land record digitization, multi-lingual OCR extraction, and canonical geospatial cadastral intelligence across Indian states.",
+  applicationName: "BhuSamanvay",
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png" },
+    ],
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({
