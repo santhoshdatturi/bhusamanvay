@@ -70,10 +70,10 @@ export function DocsPager({ prev, next, className }: DocsPagerProps) {
               {resolvedNext.title}
             </div>
           </div>
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-all group-hover:border-foreground/30 group-hover:bg-foreground group-hover:text-background">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-colors">
             <HugeiconsIcon
               icon={ArrowRight01Icon}
-              className="size-4 transition-transform group-hover:translate-x-0.5"
+              className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
             />
           </div>
         </Link>
@@ -89,10 +89,10 @@ export function DocsPager({ prev, next, className }: DocsPagerProps) {
           href={resolvedPrev.href}
           className="group flex items-center justify-between gap-4 rounded-xl border border-border/80 bg-card/60 p-5 transition-all hover:border-foreground/30 hover:bg-muted/30"
         >
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-all group-hover:border-foreground/30 group-hover:bg-foreground group-hover:text-background">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-colors">
             <HugeiconsIcon
               icon={ArrowLeft01Icon}
-              className="size-4 transition-transform group-hover:-translate-x-0.5"
+              className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
             />
           </div>
           <div className="space-y-1 text-right">
@@ -120,10 +120,10 @@ export function DocsPager({ prev, next, className }: DocsPagerProps) {
         href={resolvedPrev!.href}
         className="group flex items-center gap-3.5 rounded-xl border border-border/80 bg-card/60 p-4 transition-all hover:border-foreground/30 hover:bg-muted/30"
       >
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-all group-hover:border-foreground/30 group-hover:bg-foreground group-hover:text-background">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-colors">
           <HugeiconsIcon
             icon={ArrowLeft01Icon}
-            className="size-4 transition-transform group-hover:-translate-x-0.5"
+            className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
           />
         </div>
         <div className="space-y-0.5 overflow-hidden">
@@ -148,10 +148,10 @@ export function DocsPager({ prev, next, className }: DocsPagerProps) {
             {resolvedNext!.title}
           </div>
         </div>
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-all group-hover:border-foreground/30 group-hover:bg-foreground group-hover:text-background">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 text-muted-foreground transition-colors">
           <HugeiconsIcon
             icon={ArrowRight01Icon}
-            className="size-4 transition-transform group-hover:translate-x-0.5"
+            className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
           />
         </div>
       </Link>

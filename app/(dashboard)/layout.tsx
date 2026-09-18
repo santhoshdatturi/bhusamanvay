@@ -5,7 +5,6 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { ModeToggle } from "@/components/theme-toggle";
 
@@ -29,7 +28,7 @@ export default async function DashboardLayout({
         <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card/60 backdrop-blur-xs px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <div className="h-4 w-px bg-border mr-2 shrink-0" role="separator" aria-orientation="vertical" />
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="font-semibold text-foreground tracking-tight">
                 BhuSamanvay

@@ -72,7 +72,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
     <Sidebar collapsible="icon">
       {/* Brand Header */}
       <SidebarHeader>
-        <div className="flex items-center gap-2.5 px-1.5 py-2">
+        <div className="flex items-center gap-2.5 px-0 py-1.5 group-data-[collapsible=icon]:justify-center">
           <Logo size={32} className="size-8 shrink-0 text-foreground" />
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold tracking-tight text-foreground truncate">
