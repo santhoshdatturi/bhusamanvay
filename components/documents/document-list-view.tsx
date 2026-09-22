@@ -471,26 +471,9 @@ export function DocumentListView({
         </Card>
       </div>
 
-      {/* Table Section with Heading and Layout matching /audit */}
+      {/* Table Section */}
       <div className="flex flex-col gap-3">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold tracking-tight text-foreground">
-              Registered Documents
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Scanned RoR, 7/12 extracts, and cadastral maps configured for AI parsing.
-            </p>
-          </div>
-          {documents.length > 0 && (
-            <span className="text-xs font-mono text-muted-foreground self-start sm:self-auto">
-              {filteredDocuments.length} of {documents.length} {documents.length === 1 ? "Record" : "Records"}
-            </span>
-          )}
-        </div>
-
-        {/* Filter and Search Bar - Kept matching audit-explorer styling */}
+        {/* Filter and Search Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-xl border border-border shadow-2xs">
           <div className="flex flex-1 items-center gap-2 flex-wrap sm:flex-nowrap">
             <div className="relative flex-1 max-w-sm min-w-[200px]">
@@ -541,7 +524,12 @@ export function DocumentListView({
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+            {documents.length > 0 && (
+              <span className="text-xs font-mono text-muted-foreground tabular-nums">
+                {filteredDocuments.length} of {documents.length} {documents.length === 1 ? "Record" : "Records"}
+              </span>
+            )}
             <Button
               variant="outline"
               size="xs"

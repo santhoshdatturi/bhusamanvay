@@ -360,21 +360,9 @@ export function AuditExplorer({ initialData }: AuditExplorerProps) {
         </Card>
       </div>
 
-      {/* Table Section with Heading and Layout matching /documents */}
+      {/* Table Section */}
       <div className="flex flex-col gap-3">
-        {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold tracking-tight text-foreground">
-              Audit Trail Records
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Chronological log of document ingestion, AI extractions, field corrections, and canonical commits.
-            </p>
-          </div>
-        </div>
-
-        {/* Filter and Search Bar - Kept exactly as requested */}
+        {/* Filter and Search Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-xl border border-border shadow-2xs">
           <div className="flex flex-1 items-center gap-2">
             <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-sm">
@@ -425,7 +413,12 @@ export function AuditExplorer({ initialData }: AuditExplorerProps) {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0">
+            {stats.total > 0 && (
+              <span className="text-xs font-mono text-muted-foreground tabular-nums mr-1">
+                {data?.total ?? 0} of {stats.total} {stats.total === 1 ? "Record" : "Records"}
+              </span>
+            )}
             <Button
               variant="outline"
               size="xs"

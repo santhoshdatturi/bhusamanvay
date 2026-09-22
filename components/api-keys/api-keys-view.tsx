@@ -333,23 +333,7 @@ export function ApiKeysView({ initialKeys, user }: ApiKeysViewProps) {
 
       {/* Table Section */}
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold tracking-tight text-foreground">
-              Registered Credentials
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Service accounts configured for automated LRMS, GIS, and AI workflows.
-            </p>
-          </div>
-          {keys.length > 0 && (
-            <span className="text-xs font-mono text-muted-foreground self-start sm:self-auto">
-              {filteredKeys.length} of {keys.length} {keys.length === 1 ? "Key" : "Keys"}
-            </span>
-          )}
-        </div>
-
-        {/* Filter and Search Bar - Kept matching audit-explorer styling */}
+        {/* Filter and Search Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-xl border border-border shadow-2xs">
           <div className="flex flex-1 items-center gap-2 flex-wrap sm:flex-nowrap">
             <div className="relative flex-1 max-w-sm min-w-[200px]">
@@ -400,7 +384,12 @@ export function ApiKeysView({ initialKeys, user }: ApiKeysViewProps) {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+            {keys.length > 0 && (
+              <span className="text-xs font-mono text-muted-foreground tabular-nums">
+                {filteredKeys.length} of {keys.length} {keys.length === 1 ? "Key" : "Keys"}
+              </span>
+            )}
             <Button
               variant="outline"
               size="xs"
