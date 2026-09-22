@@ -4,4 +4,5 @@ export * from "./auth";
 export * from "./documents";
 export * from "./canonical";
 export * from "./api-keys";
+export * from "./audit-logs";
 

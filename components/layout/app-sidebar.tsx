@@ -24,6 +24,7 @@ import {
   Key01Icon,
   Logout01Icon,
   Book02Icon,
+  ShieldCheckIcon,
 } from "@hugeicons/core-free-icons";
 import { authClient } from "@/lib/auth/client";
 import type { AuthUser } from "@/lib/auth";
@@ -52,6 +53,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
       href: "/documents",
       icon: File01Icon,
       isActive: pathname.startsWith("/documents"),
+    },
+    {
+      title: "Audit Logs",
+      href: "/audit",
+      icon: ShieldCheckIcon,
+      isActive: pathname.startsWith("/audit"),
     },
     {
       title: "API Keys",

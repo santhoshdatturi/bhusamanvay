@@ -26,6 +26,13 @@ export async function POST(
     // optional body
   }
 
-  const result = await documentsService.commitToCanonicalDb(id, body);
+  const actor = {
+    id: authResult.data.id,
+    email: authResult.data.email,
+    role: authResult.data.role,
+    clientIp: request.headers.get("x-forwarded-for") ?? undefined,
+  };
+
+  const result = await documentsService.commitToCanonicalDb(id, body, actor);
   return toApiResponse(result);
 }

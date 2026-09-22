@@ -13,13 +13,16 @@ import * as filesService from "@/lib/services/files.service";
 import * as extractionEngineService from "@/lib/services/extraction-engine.service";
 import { type DocumentErrorDetails } from "@/lib/validations/documents";
 import { createLogger } from "@/lib/logger";
+import * as auditService from "@/lib/services/audit.service";
 
 const log = createLogger("extractions.service");
 
 export async function processDocument(
-  documentId: string
+  documentId: string,
+  actor?: { id?: string; email?: string; role?: string; clientIp?: string }
 ): Promise<ServiceResult<DocumentRecord>> {
   const modelName = process.env.EXTRACTION_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const startTime = Date.now();
 
   try {
     // 1. Fetch document record
@@ -28,6 +31,25 @@ export async function processDocument(
       return docResult;
     }
     const document = docResult.data;
+
+    // Record extraction start audit log
+    await auditService.record({
+      resourceType: "document",
+      resourceId: documentId,
+      documentId,
+      action: "extraction.started",
+      status: "success",
+      actorType: actor?.id ? "user" : "system",
+      actorId: actor?.id || "system-gemini",
+      actorEmail: actor?.email,
+      actorRole: actor?.role || "system",
+      clientIp: actor?.clientIp,
+      metadata: {
+        modelName,
+        fileName: document.fileName,
+        selectedState: document.state,
+      },
+    });
 
     // 2. Obtain file bytes from storage
     const fileBytesResult = await filesService.getFileContentBytes(document.fileId);
@@ -50,6 +72,23 @@ export async function processDocument(
         })
         .where(eq(documents.id, documentId))
         .returning();
+
+      await auditService.record({
+        resourceType: "document",
+        resourceId: documentId,
+        documentId,
+        action: "extraction.completed",
+        status: "failure",
+        actorType: "system",
+        actorId: "system-gemini",
+        actorRole: "system",
+        metadata: {
+          modelName,
+          errorType: structuredError.errorType,
+          errorMessage: structuredError.message,
+          cause: structuredError.cause,
+        },
+      });
 
       return fail(
         ServiceErrorCode.FILE_OPERATION_FAILED,
@@ -96,6 +135,22 @@ export async function processDocument(
         })
         .where(eq(documents.id, documentId));
 
+      await auditService.record({
+        resourceType: "document",
+        resourceId: documentId,
+        documentId,
+        action: "extraction.completed",
+        status: "failure",
+        actorType: "system",
+        actorId: "system-gemini",
+        actorRole: "system",
+        metadata: {
+          modelName,
+          errorType: structuredError.errorType,
+          errorMessage: structuredError.message,
+        },
+      });
+
       return extractionResult;
     }
 
@@ -116,6 +171,29 @@ export async function processDocument(
       .where(eq(documents.id, documentId))
       .returning();
 
+    const durationMs = Date.now() - startTime;
+
+    // Record extraction completed audit log
+    await auditService.record({
+      resourceType: "document",
+      resourceId: documentId,
+      documentId,
+      action: "extraction.completed",
+      status: "success",
+      actorType: "system",
+      actorId: "system-gemini",
+      actorRole: "system",
+      metadata: {
+        modelName,
+        durationMs,
+        confidenceScore: Math.round(structuredData.overallConfidence),
+        detectedState: structuredData.documentClassification.state || document.state,
+        documentType: structuredData.documentClassification.documentType || document.documentType,
+        recordsCount: structuredData.records?.length || 0,
+        ownersCount: structuredData.owners?.length || 0,
+      },
+    });
+
     return ok(updatedDoc);
   } catch (error) {
     log.error({ err: error, documentId }, "Document processing error");
@@ -135,6 +213,22 @@ export async function processDocument(
           updatedAt: new Date().toISOString(),
         })
         .where(eq(documents.id, documentId));
+
+      await auditService.record({
+        resourceType: "document",
+        resourceId: documentId,
+        documentId,
+        action: "extraction.completed",
+        status: "failure",
+        actorType: "system",
+        actorId: "system-gemini",
+        actorRole: "system",
+        metadata: {
+          modelName,
+          errorType: structuredError.errorType,
+          errorMessage: structuredError.message,
+        },
+      });
     } catch (cleanupError) {
       log.error({ cleanupError }, "Failed to update failure state for document");
     }

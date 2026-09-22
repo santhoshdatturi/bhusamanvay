@@ -14,6 +14,7 @@ import type {
   spatialMaps,
   propertyCards,
   apiKeys,
+  auditLogs,
 } from "./schema";
 import { userRoleEnum, stateEnum } from "./schema/enums";
 
@@ -23,6 +24,8 @@ export type FileRecord = typeof files.$inferSelect;
 export type DocumentRecord = typeof documents.$inferSelect;
 export type ApiKeyRecord = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
+export type AuditLogRecord = typeof auditLogs.$inferSelect;
+export type NewAuditLog = typeof auditLogs.$inferInsert;
 
 export type AuthUserRecord = typeof users.$inferSelect;
 export type AuthSessionRecord = typeof sessions.$inferSelect;
@@ -56,5 +59,26 @@ export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type State = (typeof stateEnum.enumValues)[number];
 export type DocumentType = typeof documents.$inferInsert["documentType"];
 export type DocumentStatus = typeof documents.$inferInsert["status"];
+export type AuditLogAction =
+  | "document.uploaded"
+  | "extraction.started"
+  | "extraction.completed"
+  | "extraction.failed"
+  | "field.corrected"
+  | "document.verified"
+  | "canonical.committed"
+  | "document.deleted"
+  | "api_key.created"
+  | "api_key.revoked"
+  | "lrms.exported";
+export type AuditActorType = "user" | "system" | "api_key";
+export interface FieldDiffItem {
+  field: string;
+  label?: string;
+  ocrValue?: string | number | boolean | null;
+  ocrConfidence?: number | null;
+  humanValue?: string | number | boolean | null;
+  correctionType?: "manual_edit" | "cleared" | "added";
+}
 
 

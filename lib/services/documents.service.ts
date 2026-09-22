@@ -36,6 +36,7 @@ import {
 } from "@/lib/validations/canonical";
 import { stateEnum } from "@/lib/db/schema/enums";
 import type { StructuredLandRecordExtraction } from "@/lib/validations/extractions";
+import * as auditService from "@/lib/services/audit.service";
 
 
 export interface PaginatedDocumentsResult {
@@ -53,7 +54,8 @@ export interface PaginatedDocumentsResult {
 }
 
 export async function create(
-  payload: typeof documents.$inferInsert
+  payload: typeof documents.$inferInsert,
+  actor?: { id?: string; email?: string; role?: string; clientIp?: string }
 ): Promise<ServiceResult<DocumentRecord>> {
   try {
     const validationResult = insertDocumentSchema.safeParse(payload);
@@ -80,6 +82,27 @@ export async function create(
     if (document.fileId) {
       await markFileLinked(document.fileId);
     }
+
+    // Record audit log for document ingestion
+    await auditService.record({
+      resourceType: "document",
+      resourceId: document.id,
+      documentId: document.id,
+      action: "document.uploaded",
+      status: "success",
+      actorType: actor?.id ? "user" : "system",
+      actorId: actor?.id || document.uploadedBy,
+      actorEmail: actor?.email,
+      actorRole: actor?.role || "reviewer",
+      clientIp: actor?.clientIp,
+      metadata: {
+        title: document.title,
+        fileName: document.fileName,
+        documentType: document.documentType,
+        state: document.state,
+        fileId: document.fileId,
+      },
+    });
 
     return ok(document);
   } catch (error) {
@@ -284,7 +307,8 @@ export async function remove(id: string): Promise<ServiceResult<void>> {
 
 export async function commitToCanonicalDb(
   documentId: string,
-  verifiedRecord?: unknown
+  verifiedRecord?: unknown,
+  actor?: { id?: string; email?: string; role?: string; clientIp?: string }
 ): Promise<ServiceResult<{ committed: boolean; targetTable: string; recordId: string }>> {
   try {
     const docResult = await get(documentId);
@@ -543,6 +567,33 @@ export async function commitToCanonicalDb(
           updatedAt: new Date().toISOString(),
         })
         .where(eq(documents.id, documentId));
+
+      // Calculate human-in-the-loop field diffs between OCR extraction and human verified record
+      const diffs = auditService.computeFieldDiffs(doc.extractedData, payload);
+
+      // Record canonical commit audit log atomically inside the transaction
+      await auditService.record(
+        {
+          resourceType: doc.documentType,
+          resourceId: insertedRecordId || documentId,
+          documentId: doc.id,
+          action: "canonical.committed",
+          status: "success",
+          actorType: actor?.id ? "user" : "system",
+          actorId: actor?.id,
+          actorEmail: actor?.email,
+          actorRole: actor?.role || "reviewer",
+          clientIp: actor?.clientIp,
+          diff: diffs.length > 0 ? diffs : undefined,
+          metadata: {
+            targetTable: doc.documentType,
+            recordId: insertedRecordId,
+            previousStatus: doc.status,
+            fieldModificationsCount: diffs.length,
+          },
+        },
+        tx
+      );
     });
 
     return ok({
