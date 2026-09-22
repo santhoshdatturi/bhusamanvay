@@ -92,7 +92,7 @@ interface AuditExplorerProps {
   user?: AuthUser;
 }
 
-export function AuditExplorer({ initialData, user }: AuditExplorerProps) {
+export function AuditExplorer({ initialData }: AuditExplorerProps) {
   const [data, setData] = useState<PaginatedAuditLogsResult>(initialData);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -252,17 +252,9 @@ export function AuditExplorer({ initialData, user }: AuditExplorerProps) {
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Audit Logs & Chain of Custody
-            </h1>
-            <Badge
-              variant="outline"
-              className="text-[11px] font-mono uppercase px-2 py-0.5 tracking-wider bg-muted/40 text-foreground border-border/60"
-            >
-              {user?.role ? `${user.role} workspace` : "Workspace"}
-            </Badge>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Audit Logs & Chain of Custody
+          </h1>
           <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
             Immutable digital provenance and verification logs for DILRMP compliance, AI OCR extraction runs, and canonical registry commits.
           </p>

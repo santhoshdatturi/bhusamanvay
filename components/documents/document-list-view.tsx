@@ -24,6 +24,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -54,6 +61,21 @@ import { cn } from "@/lib/utils";
 import type { DocumentRecord } from "@/lib/db/types";
 import type { AuthUser } from "@/lib/auth";
 
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "All Status" },
+  { value: "uploaded", label: "Uploaded" },
+  { value: "extracted", label: "Extracted" },
+  { value: "failed", label: "Failed" },
+];
+
+const TYPE_FILTER_OPTIONS = [
+  { value: "all", label: "All Document Types" },
+  ...DOCUMENT_TYPES.map((dt) => ({
+    value: dt.value,
+    label: dt.shortLabel || dt.label,
+  })),
+];
+
 interface DocumentListViewProps {
   initialDocuments?: DocumentRecord[];
   initialStats?: {
@@ -67,12 +89,12 @@ interface DocumentListViewProps {
 
 export function DocumentListView({
   initialDocuments = [],
-  user,
 }: DocumentListViewProps) {
   const router = useRouter();
   const [documents, setDocuments] = useState<DocumentRecord[]>(initialDocuments);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
@@ -99,7 +121,12 @@ export function DocumentListView({
         return false;
       }
 
-      // 2. Search query filter
+      // 2. Document type filter
+      if (typeFilter !== "all" && doc.documentType !== typeFilter) {
+        return false;
+      }
+
+      // 3. Search query filter
       const q = search.trim().toLowerCase();
       if (q) {
         const titleMatch = doc.title.toLowerCase().includes(q);
@@ -115,7 +142,7 @@ export function DocumentListView({
 
       return true;
     });
-  }, [documents, statusFilter, search]);
+  }, [documents, statusFilter, typeFilter, search]);
 
   const fetchDocuments = useCallback(async () => {
     setIsLoading(true);
@@ -255,22 +282,15 @@ export function DocumentListView({
     }
   };
 
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Land Record Documents
-            </h1>
-            <Badge
-              variant="outline"
-              className="text-[11px] font-mono uppercase px-2 py-0.5 tracking-wider bg-muted/40 text-foreground border-border/60"
-            >
-              {user?.role ? `${user.role} workspace` : "Workspace"}
-            </Badge>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Land Record Documents
+          </h1>
           <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
             Digitize, inspect, and reconcile Indian land revenue records, cadastral registers, and 7/12 extracts with AI parcel extraction.
           </p>
@@ -451,9 +471,9 @@ export function DocumentListView({
         </Card>
       </div>
 
-      {/* Table Section */}
+      {/* Table Section with Heading and Layout matching /audit */}
       <div className="flex flex-col gap-3">
-        {/* Section Header with Search and Controls */}
+        {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold tracking-tight text-foreground">
@@ -463,30 +483,71 @@ export function DocumentListView({
               Scanned RoR, 7/12 extracts, and cadastral maps configured for AI parsing.
             </p>
           </div>
+          {documents.length > 0 && (
+            <span className="text-xs font-mono text-muted-foreground self-start sm:self-auto">
+              {filteredDocuments.length} of {documents.length} {documents.length === 1 ? "Record" : "Records"}
+            </span>
+          )}
+        </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            {/* Search Input */}
-            <div className="relative w-64 sm:w-72">
+        {/* Filter and Search Bar - Kept matching audit-explorer styling */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 rounded-xl border border-border shadow-2xs">
+          <div className="flex flex-1 items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div className="relative flex-1 max-w-sm min-w-[200px]">
               <HugeiconsIcon
                 icon={Search01Icon}
-                className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none"
               />
               <Input
-                type="text"
                 placeholder="Search by title, file, or state..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-8 text-xs bg-card border-border/70 shadow-2xs"
+                className="pl-8 h-8 text-xs bg-background"
               />
             </div>
 
-            {/* Refresh Button following loading rules: min-w, icon swap, no ellipsis */}
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => setStatusFilter(val || "all")}
+              items={STATUS_FILTER_OPTIONS}
+            >
+              <SelectTrigger className="w-[130px] h-8 text-xs bg-background">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[135px]">
+                {STATUS_FILTER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={typeFilter}
+              onValueChange={(val) => setTypeFilter(val || "all")}
+              items={TYPE_FILTER_OPTIONS}
+            >
+              <SelectTrigger className="w-[185px] h-8 text-xs bg-background">
+                <SelectValue placeholder="All Document Types" />
+              </SelectTrigger>
+              <SelectContent className="min-w-[190px]">
+                {TYPE_FILTER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               onClick={() => fetchDocuments()}
               disabled={isLoading}
-              className="h-8 min-w-[90px] font-medium text-xs shadow-2xs"
+              className="gap-1 font-sans text-xs h-8 px-2.5"
             >
               <HugeiconsIcon
                 icon={isLoading ? Loading03Icon : ReloadIcon}
@@ -531,7 +592,7 @@ export function DocumentListView({
                   No matching land records found
                 </span>
                 <span className="text-xs text-muted-foreground leading-relaxed">
-                  No documents matched your filter criteria ({statusFilter !== "all" ? `status: ${statusFilter}` : "all statuses"}{search.trim() ? `, search: "${search.trim()}"` : ""}). Try resetting filters.
+                  No documents matched your filter criteria ({statusFilter !== "all" ? `status: ${statusFilter}` : "all statuses"}{typeFilter !== "all" ? `, type: ${typeFilter}` : ""}{search.trim() ? `, search: "${search.trim()}"` : ""}). Try resetting filters.
                 </span>
               </div>
               <Button
@@ -540,6 +601,7 @@ export function DocumentListView({
                 onClick={() => {
                   setSearch("");
                   setStatusFilter("all");
+                  setTypeFilter("all");
                 }}
                 className="mt-2 font-medium"
               >

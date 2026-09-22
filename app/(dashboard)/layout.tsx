@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { ModeToggle } from "@/components/theme-toggle";
+import { Badge } from "@/components/ui/badge";
 
 export default async function DashboardLayout({
   children,
@@ -25,18 +26,21 @@ export default async function DashboardLayout({
     <SidebarProvider defaultOpen={true}>
       <AppSidebar user={user} />
       <SidebarInset>
-        <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card/60 backdrop-blur-xs px-4">
-          <div className="flex items-center gap-2">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/80 bg-background/95 backdrop-blur-xs supports-backdrop-filter:bg-background/60 px-4 sm:px-6">
+          <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-            <div className="h-4 w-px bg-border mr-2 shrink-0" role="separator" aria-orientation="vertical" />
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground tracking-tight">
+            <div className="h-4 w-px bg-border/80 shrink-0" role="separator" aria-orientation="vertical" />
+            <div className="flex items-center gap-2.5">
+              <span className="font-sans font-bold text-sm sm:text-base tracking-tight text-foreground">
                 BhuSamanvay
               </span>
-              <span>/</span>
-              <span className="font-mono text-[11px] text-muted-foreground uppercase tracking-wider">
-                Workspace
-              </span>
+              <span className="text-muted-foreground/60 text-xs">/</span>
+              <Badge
+                variant="secondary"
+                className="font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.2 text-muted-foreground"
+              >
+                Admin Workspace
+              </Badge>
             </div>
           </div>
           <div className="flex items-center gap-2">

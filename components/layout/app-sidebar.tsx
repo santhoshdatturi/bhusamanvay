@@ -47,7 +47,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
     });
   };
 
-  const navItems = [
+  interface NavItem {
+    title: string;
+    href: string;
+    icon: typeof File01Icon;
+    isActive: boolean;
+    badge?: string;
+  }
+
+  const navItems: NavItem[] = [
     {
       title: "Documents",
       href: "/documents",
@@ -65,7 +73,6 @@ export function AppSidebar({ user }: AppSidebarProps) {
       href: "/api-keys",
       icon: Key01Icon,
       isActive: pathname.startsWith("/api-keys"),
-      badge: user.role === "admin" ? "Admin" : undefined,
     },
     {
       title: "API Docs",
