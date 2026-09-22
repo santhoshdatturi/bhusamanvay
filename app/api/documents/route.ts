@@ -42,7 +42,14 @@ export async function POST(request: NextRequest) {
       return toApiResponse(fail(ServiceErrorCode.VALIDATION_FAILED, parsed.error.message));
     }
 
-    const result = await documentsService.create(parsed.data);
+    const actor = {
+      id: authResult.data.id,
+      email: authResult.data.email,
+      role: authResult.data.role,
+      clientIp: request.headers.get("x-forwarded-for") ?? undefined,
+    };
+
+    const result = await documentsService.create(parsed.data, actor);
     return toApiResponse(result, 201);
   } catch (err) {
     return toApiResponse(fail(ServiceErrorCode.VALIDATION_FAILED, "Invalid JSON request body", err));

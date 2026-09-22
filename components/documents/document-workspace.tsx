@@ -7,24 +7,30 @@ import {
   Clock01Icon,
   CheckmarkCircle02Icon,
   Alert02Icon,
+  Layers01Icon,
+  ShieldCheckIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DocumentViewer } from "./document-viewer";
 import { ExtractionPanel } from "./extraction-panel";
+import { AuditTimeline } from "./audit-timeline";
 import { DOCUMENT_TYPES } from "@/lib/constants/documents";
-import type { DocumentRecord } from "@/lib/db/types";
+import type { DocumentRecord, AuditLogRecord } from "@/lib/db/types";
 
 interface DocumentWorkspaceProps {
   initialDocument: DocumentRecord;
   initialDownloadUrl?: string | null;
+  initialAuditLogs?: AuditLogRecord[];
 }
 
 export function DocumentWorkspace({
   initialDocument,
   initialDownloadUrl,
+  initialAuditLogs = [],
 }: DocumentWorkspaceProps) {
   const [document, setDocument] = useState<DocumentRecord>(initialDocument);
   const [downloadUrl, setDownloadUrl] = useState(initialDownloadUrl);
+  const [activeTab, setActiveTab] = useState<"extraction" | "audit">("extraction");
 
   const fetchDocumentDetails = useCallback(async () => {
     try {
@@ -106,6 +112,34 @@ export function DocumentWorkspace({
           </div>
         </div>
 
+        {/* Center: View Switcher (Extraction vs Audit Trail) */}
+        <div className="inline-flex items-center rounded-lg bg-muted/80 p-0.5 border border-border">
+          <button
+            type="button"
+            onClick={() => setActiveTab("extraction")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-sans transition-all ${
+              activeTab === "extraction"
+                ? "bg-card text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <HugeiconsIcon icon={Layers01Icon} className="size-3.5" />
+            <span>Extraction</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("audit")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-sans transition-all ${
+              activeTab === "audit"
+                ? "bg-card text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <HugeiconsIcon icon={ShieldCheckIcon} className="size-3.5" />
+            <span>Audit Trail</span>
+          </button>
+        </div>
+
         <div className="flex items-center gap-2.5 shrink-0">
           <span className="text-xs font-sans bg-muted/80 text-foreground border border-border px-2 py-0.5 rounded font-medium hidden sm:inline-flex items-center gap-1">
             {document.state && (
@@ -128,12 +162,19 @@ export function DocumentWorkspace({
           />
         </div>
 
-        {/* Right Pane: Structured Extraction Panel */}
+        {/* Right Pane: Structured Extraction Panel OR Audit Trail */}
         <div className="h-full min-h-0 flex flex-col overflow-hidden">
-          <ExtractionPanel
-            document={document}
-            onRefresh={fetchDocumentDetails}
-          />
+          {activeTab === "extraction" ? (
+            <ExtractionPanel
+              document={document}
+              onRefresh={fetchDocumentDetails}
+            />
+          ) : (
+            <AuditTimeline
+              documentId={document.id}
+              initialLogs={initialAuditLogs}
+            />
+          )}
         </div>
       </main>
     </div>

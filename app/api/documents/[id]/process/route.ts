@@ -8,13 +8,20 @@ interface RouteParams {
 }
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   context: RouteParams
 ) {
   const authResult = await requireAuth();
   if (!authResult.success) return toApiResponse(authResult);
 
   const { id } = await context.params;
-  const result = await extractionsService.processDocument(id);
+  const actor = {
+    id: authResult.data.id,
+    email: authResult.data.email,
+    role: authResult.data.role,
+    clientIp: request.headers.get("x-forwarded-for") ?? undefined,
+  };
+
+  const result = await extractionsService.processDocument(id, actor);
   return toApiResponse(result);
 }

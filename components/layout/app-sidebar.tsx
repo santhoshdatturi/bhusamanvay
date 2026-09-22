@@ -24,6 +24,7 @@ import {
   Key01Icon,
   Logout01Icon,
   Book02Icon,
+  ShieldCheckIcon,
 } from "@hugeicons/core-free-icons";
 import { authClient } from "@/lib/auth/client";
 import type { AuthUser } from "@/lib/auth";
@@ -46,7 +47,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
     });
   };
 
-  const navItems = [
+  interface NavItem {
+    title: string;
+    href: string;
+    icon: typeof File01Icon;
+    isActive: boolean;
+    badge?: string;
+  }
+
+  const navItems: NavItem[] = [
     {
       title: "Documents",
       href: "/documents",
@@ -54,11 +63,16 @@ export function AppSidebar({ user }: AppSidebarProps) {
       isActive: pathname.startsWith("/documents"),
     },
     {
+      title: "Audit Logs",
+      href: "/audit",
+      icon: ShieldCheckIcon,
+      isActive: pathname.startsWith("/audit"),
+    },
+    {
       title: "API Keys",
       href: "/api-keys",
       icon: Key01Icon,
       isActive: pathname.startsWith("/api-keys"),
-      badge: user.role === "admin" ? "Admin" : undefined,
     },
     {
       title: "API Docs",

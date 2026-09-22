@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import * as documentsService from "@/lib/services/documents.service";
 import * as filesService from "@/lib/services/files.service";
+import * as auditService from "@/lib/services/audit.service";
 
 interface DocumentPageProps {
   params: Promise<{ id: string }>;
@@ -50,10 +51,15 @@ export default async function DocumentDetailPage({ params }: DocumentPageProps) 
     // S3 or presigned URL gracefully handled
   }
 
+  // 3. Fetch initial audit trail for timeline tab
+  const auditResult = await auditService.getDocumentTimeline(id);
+  const initialAuditLogs = auditResult.success ? auditResult.data : [];
+
   return (
     <DocumentWorkspace
       initialDocument={document}
       initialDownloadUrl={downloadUrl}
+      initialAuditLogs={initialAuditLogs}
     />
   );
 }
