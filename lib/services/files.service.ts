@@ -99,11 +99,15 @@ export async function createFileRecord(
 /**
  * Mark an uploaded file as officially linked to a domain entity (e.g. document, profile)
  */
-export async function markFileLinked(fileId: string): Promise<ServiceResult> {
+export async function markFileLinked(
+  fileId: string,
+  txHandle?: Parameters<Parameters<typeof db.transaction>[0]>[0]
+): Promise<ServiceResult> {
   log.debug({ fileId }, "Marking file as linked");
 
   try {
-    await db
+    const client = txHandle ?? db;
+    await client
       .update(files)
       .set({ status: "linked" })
       .where(eq(files.id, fileId));

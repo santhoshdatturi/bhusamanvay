@@ -39,7 +39,7 @@ export default async function DashboardLayout({
                 variant="secondary"
                 className="font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.2 text-muted-foreground"
               >
-                Admin Workspace
+                {user.role === "admin" ? "Admin Workspace" : "Workspace"}
               </Badge>
             </div>
           </div>

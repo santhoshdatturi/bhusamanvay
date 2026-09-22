@@ -63,31 +63,42 @@ export async function processDocument(
         timestamp: new Date().toISOString(),
       };
 
-      const [failedDoc] = await db
-        .update(documents)
-        .set({
-          status: "failed",
-          errorDetails: structuredError,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(documents.id, documentId))
-        .returning();
+      const failedDoc = await db.transaction(async (tx) => {
+        const [doc] = await tx
+          .update(documents)
+          .set({
+            status: "failed",
+            errorDetails: structuredError,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(documents.id, documentId))
+          .returning();
 
-      await auditService.record({
-        resourceType: "document",
-        resourceId: documentId,
-        documentId,
-        action: "extraction.completed",
-        status: "failure",
-        actorType: "system",
-        actorId: "system-gemini",
-        actorRole: "system",
-        metadata: {
-          modelName,
-          errorType: structuredError.errorType,
-          errorMessage: structuredError.message,
-          cause: structuredError.cause,
-        },
+        const auditRes = await auditService.record(
+          {
+            resourceType: "document",
+            resourceId: documentId,
+            documentId,
+            action: "extraction.completed",
+            status: "failure",
+            actorType: "system",
+            actorId: "system-gemini",
+            actorRole: "system",
+            metadata: {
+              modelName,
+              errorType: structuredError.errorType,
+              errorMessage: structuredError.message,
+              cause: structuredError.cause,
+            },
+          },
+          tx
+        );
+
+        if (!auditRes.success) {
+          throw new Error(auditRes.error.message || "Failed to record extraction failure audit log");
+        }
+
+        return doc;
       });
 
       return fail(
@@ -126,29 +137,38 @@ export async function processDocument(
         timestamp: new Date().toISOString(),
       };
 
-      await db
-        .update(documents)
-        .set({
-          status: "failed",
-          errorDetails: structuredError,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(documents.id, documentId));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(documents)
+          .set({
+            status: "failed",
+            errorDetails: structuredError,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(documents.id, documentId));
 
-      await auditService.record({
-        resourceType: "document",
-        resourceId: documentId,
-        documentId,
-        action: "extraction.completed",
-        status: "failure",
-        actorType: "system",
-        actorId: "system-gemini",
-        actorRole: "system",
-        metadata: {
-          modelName,
-          errorType: structuredError.errorType,
-          errorMessage: structuredError.message,
-        },
+        const auditRes = await auditService.record(
+          {
+            resourceType: "document",
+            resourceId: documentId,
+            documentId,
+            action: "extraction.completed",
+            status: "failure",
+            actorType: "system",
+            actorId: "system-gemini",
+            actorRole: "system",
+            metadata: {
+              modelName,
+              errorType: structuredError.errorType,
+              errorMessage: structuredError.message,
+            },
+          },
+          tx
+        );
+
+        if (!auditRes.success) {
+          throw new Error(auditRes.error.message || "Failed to record extraction failure audit log");
+        }
       });
 
       return extractionResult;
@@ -156,42 +176,52 @@ export async function processDocument(
 
     const { data: structuredData } = extractionResult.data;
 
-    // 5. Update document directly with raw extracted JSON and confidence score
-    const [updatedDoc] = await db
-      .update(documents)
-      .set({
-        status: "extracted",
-        documentType: structuredData.documentClassification.documentType || document.documentType,
-        state: structuredData.documentClassification.state || document.state,
-        extractedData: structuredData,
-        confidenceScore: Math.round(structuredData.overallConfidence),
-        errorDetails: null,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(documents.id, documentId))
-      .returning();
-
     const durationMs = Date.now() - startTime;
 
-    // Record extraction completed audit log
-    await auditService.record({
-      resourceType: "document",
-      resourceId: documentId,
-      documentId,
-      action: "extraction.completed",
-      status: "success",
-      actorType: "system",
-      actorId: "system-gemini",
-      actorRole: "system",
-      metadata: {
-        modelName,
-        durationMs,
-        confidenceScore: Math.round(structuredData.overallConfidence),
-        detectedState: structuredData.documentClassification.state || document.state,
-        documentType: structuredData.documentClassification.documentType || document.documentType,
-        recordsCount: structuredData.records?.length || 0,
-        ownersCount: structuredData.owners?.length || 0,
-      },
+    // 5. Update document directly with raw extracted JSON and confidence score atomically with audit log
+    const updatedDoc = await db.transaction(async (tx) => {
+      const [doc] = await tx
+        .update(documents)
+        .set({
+          status: "extracted",
+          documentType: structuredData.documentClassification.documentType || document.documentType,
+          state: structuredData.documentClassification.state || document.state,
+          extractedData: structuredData,
+          confidenceScore: Math.round(structuredData.overallConfidence),
+          errorDetails: null,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(documents.id, documentId))
+        .returning();
+
+      const auditRes = await auditService.record(
+        {
+          resourceType: "document",
+          resourceId: documentId,
+          documentId,
+          action: "extraction.completed",
+          status: "success",
+          actorType: "system",
+          actorId: "system-gemini",
+          actorRole: "system",
+          metadata: {
+            modelName,
+            durationMs,
+            confidenceScore: Math.round(structuredData.overallConfidence),
+            detectedState: structuredData.documentClassification.state || document.state,
+            documentType: structuredData.documentClassification.documentType || document.documentType,
+            recordsCount: structuredData.records?.length || 0,
+            ownersCount: structuredData.owners?.length || 0,
+          },
+        },
+        tx
+      );
+
+      if (!auditRes.success) {
+        throw new Error(auditRes.error.message || "Failed to record extraction completion audit log");
+      }
+
+      return doc;
     });
 
     return ok(updatedDoc);
@@ -205,29 +235,38 @@ export async function processDocument(
     };
 
     try {
-      await db
-        .update(documents)
-        .set({
-          status: "failed",
-          errorDetails: structuredError,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(documents.id, documentId));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(documents)
+          .set({
+            status: "failed",
+            errorDetails: structuredError,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(eq(documents.id, documentId));
 
-      await auditService.record({
-        resourceType: "document",
-        resourceId: documentId,
-        documentId,
-        action: "extraction.completed",
-        status: "failure",
-        actorType: "system",
-        actorId: "system-gemini",
-        actorRole: "system",
-        metadata: {
-          modelName,
-          errorType: structuredError.errorType,
-          errorMessage: structuredError.message,
-        },
+        const auditRes = await auditService.record(
+          {
+            resourceType: "document",
+            resourceId: documentId,
+            documentId,
+            action: "extraction.completed",
+            status: "failure",
+            actorType: "system",
+            actorId: "system-gemini",
+            actorRole: "system",
+            metadata: {
+              modelName,
+              errorType: structuredError.errorType,
+              errorMessage: structuredError.message,
+            },
+          },
+          tx
+        );
+
+        if (!auditRes.success) {
+          throw new Error(auditRes.error.message || "Failed to record extraction failure audit log");
+        }
       });
     } catch (cleanupError) {
       log.error({ cleanupError }, "Failed to update failure state for document");

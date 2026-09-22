@@ -67,41 +67,55 @@ export async function create(
     }
 
     const { data } = validationResult;
-    const [document] = await db
-      .insert(documents)
-      .values({
-        ...data,
-      })
-      .returning();
+    const document = await db.transaction(async (tx) => {
+      const [doc] = await tx
+        .insert(documents)
+        .values({
+          ...data,
+        })
+        .returning();
 
-    if (!document) {
-      return fail(ServiceErrorCode.DB_ERROR, "Failed to insert document record");
-    }
+      if (!doc) {
+        throw new Error("Failed to insert document record");
+      }
 
-    // Server-side linking: mark the file as linked to this document
-    if (document.fileId) {
-      await markFileLinked(document.fileId);
-    }
+      // Server-side linking: mark the file as linked to this document
+      if (doc.fileId) {
+        const linkResult = await markFileLinked(doc.fileId, tx);
+        if (!linkResult.success) {
+          throw new Error(linkResult.error.message || "Failed to mark file as linked");
+        }
+      }
 
-    // Record audit log for document ingestion
-    await auditService.record({
-      resourceType: "document",
-      resourceId: document.id,
-      documentId: document.id,
-      action: "document.uploaded",
-      status: "success",
-      actorType: actor?.id ? "user" : "system",
-      actorId: actor?.id || document.uploadedBy,
-      actorEmail: actor?.email,
-      actorRole: actor?.role || "reviewer",
-      clientIp: actor?.clientIp,
-      metadata: {
-        title: document.title,
-        fileName: document.fileName,
-        documentType: document.documentType,
-        state: document.state,
-        fileId: document.fileId,
-      },
+      // Record audit log for document ingestion
+      const auditResult = await auditService.record(
+        {
+          resourceType: "document",
+          resourceId: doc.id,
+          documentId: doc.id,
+          action: "document.uploaded",
+          status: "success",
+          actorType: actor?.id ? "user" : "system",
+          actorId: actor?.id || doc.uploadedBy,
+          actorEmail: actor?.email,
+          actorRole: actor?.role || "reviewer",
+          clientIp: actor?.clientIp,
+          metadata: {
+            title: doc.title,
+            fileName: doc.fileName,
+            documentType: doc.documentType,
+            state: doc.state,
+            fileId: doc.fileId,
+          },
+        },
+        tx
+      );
+
+      if (!auditResult.success) {
+        throw new Error(auditResult.error.message || "Failed to record upload audit log");
+      }
+
+      return doc;
     });
 
     return ok(document);
@@ -572,7 +586,7 @@ export async function commitToCanonicalDb(
       const diffs = auditService.computeFieldDiffs(doc.extractedData, payload);
 
       // Record canonical commit audit log atomically inside the transaction
-      await auditService.record(
+      const auditResult = await auditService.record(
         {
           resourceType: doc.documentType,
           resourceId: insertedRecordId || documentId,
@@ -594,6 +608,10 @@ export async function commitToCanonicalDb(
         },
         tx
       );
+
+      if (!auditResult.success) {
+        throw new Error(auditResult.error.message || "Failed to record canonical commit audit log");
+      }
     });
 
     return ok({

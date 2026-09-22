@@ -283,6 +283,11 @@ export function DocumentListView({
   };
 
 
+  const selectedStatusLabel =
+    STATUS_FILTER_OPTIONS.find((opt) => opt.value === statusFilter)?.label || statusFilter;
+  const selectedTypeLabel =
+    TYPE_FILTER_OPTIONS.find((opt) => opt.value === typeFilter)?.label || typeFilter;
+
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6">
       {/* Header Banner */}
@@ -580,7 +585,7 @@ export function DocumentListView({
                   No matching land records found
                 </span>
                 <span className="text-xs text-muted-foreground leading-relaxed">
-                  No documents matched your filter criteria ({statusFilter !== "all" ? `status: ${statusFilter}` : "all statuses"}{typeFilter !== "all" ? `, type: ${typeFilter}` : ""}{search.trim() ? `, search: "${search.trim()}"` : ""}). Try resetting filters.
+                  No documents matched your filter criteria ({statusFilter !== "all" ? `status: ${selectedStatusLabel}` : "all statuses"}{typeFilter !== "all" ? `, type: ${selectedTypeLabel}` : ""}{search.trim() ? `, search: "${search.trim()}"` : ""}). Try resetting filters.
                 </span>
               </div>
               <Button

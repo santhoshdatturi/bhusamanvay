@@ -253,10 +253,10 @@ export function AuditExplorer({ initialData }: AuditExplorerProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Audit Logs & Chain of Custody
+            Audit Logs
           </h1>
           <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
-            Immutable digital provenance and verification logs for DILRMP compliance, AI OCR extraction runs, and canonical registry commits.
+            Recorded audit logs for DILRMP compliance, AI OCR extraction runs, and canonical registry commits.
           </p>
         </div>
       </div>
@@ -661,7 +661,7 @@ export function AuditExplorer({ initialData }: AuditExplorerProps) {
                       Audit Entry Details
                     </h3>
                     <p className="text-[11px] text-muted-foreground">
-                      Cryptographic digital chain of custody record
+                      Recorded audit log entry
                     </p>
                   </div>
                 </div>

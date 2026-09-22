@@ -75,7 +75,7 @@ function isKeyRevoked(k: ApiKeyRecord): boolean {
 }
 
 function isKeyExpired(k: ApiKeyRecord): boolean {
-  return Boolean(k.expiresAt) && new Date(k.expiresAt!) < new Date();
+  return !isKeyRevoked(k) && Boolean(k.expiresAt) && new Date(k.expiresAt!) < new Date();
 }
 
 function isKeyActive(k: ApiKeyRecord): boolean {
@@ -146,11 +146,15 @@ export function ApiKeysView({ initialKeys, user }: ApiKeysViewProps) {
     setIsRefreshing(true);
     try {
       const res = await listApiKeysAction();
-      if (res.success && res.data) {
+      if (!res.success) {
+        throw new Error(res.error?.userMessage || "Failed to refresh API keys");
+      }
+      if (res.data) {
         setKeys(res.data);
       }
-    } catch {
-      // Ignored
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to refresh API keys";
+      toast.error(message);
     } finally {
       setIsRefreshing(false);
     }
@@ -475,10 +479,8 @@ export function ApiKeysView({ initialKeys, user }: ApiKeysViewProps) {
               </TableHeader>
               <TableBody>
                 {filteredKeys.map((apiKey) => {
-                  const isRevoked = Boolean(apiKey.revokedAt);
-                  const isExpired =
-                    Boolean(apiKey.expiresAt) &&
-                    new Date(apiKey.expiresAt!) < new Date();
+                  const isRevoked = isKeyRevoked(apiKey);
+                  const isExpired = isKeyExpired(apiKey);
                   const isRevoking = revokingId === apiKey.id;
 
                   let statusBadge = (

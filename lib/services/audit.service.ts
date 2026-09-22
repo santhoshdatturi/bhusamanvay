@@ -18,8 +18,8 @@ import {
 
 const log = createLogger("audit.service");
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
-type DatabaseOrTransaction = typeof db | Transaction;
+export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type DatabaseOrTransaction = typeof db | Transaction;
 
 export interface PaginatedAuditLogsResult {
   logs: AuditLogRecord[];
@@ -247,22 +247,24 @@ export function computeFieldDiffs(
 
   // Helper to compare key-value pairs recursively for top-level scalar properties
   const compareScalars = (prefix: string, oVal: unknown, uVal: unknown, label?: string) => {
-    if (oVal === uVal) return;
-    if (oVal === undefined && uVal === undefined) return;
-    if (oVal === null && uVal === "") return;
-    if (oVal === "" && uVal === null) return;
+    const normO = oVal === undefined ? null : oVal;
+    const normU = uVal === undefined ? null : uVal;
+
+    if (normO === normU) return;
+    if (normO === null && normU === "") return;
+    if (normO === "" && normU === null) return;
 
     if (
-      (typeof oVal === "string" || typeof oVal === "number" || typeof oVal === "boolean" || oVal === null) &&
-      (typeof uVal === "string" || typeof uVal === "number" || typeof uVal === "boolean" || uVal === null)
+      (typeof normO === "string" || typeof normO === "number" || typeof normO === "boolean" || normO === null) &&
+      (typeof normU === "string" || typeof normU === "number" || typeof normU === "boolean" || normU === null)
     ) {
-      if (String(oVal ?? "").trim() !== String(uVal ?? "").trim()) {
+      if (String(normO ?? "").trim() !== String(normU ?? "").trim()) {
         diffs.push({
           field: prefix,
           label: label || prefix,
-          ocrValue: oVal,
-          humanValue: uVal,
-          correctionType: oVal === null || oVal === "" ? "added" : uVal === null || uVal === "" ? "cleared" : "manual_edit",
+          ocrValue: normO,
+          humanValue: normU,
+          correctionType: normO === null || normO === "" ? "added" : normU === null || normU === "" ? "cleared" : "manual_edit",
         });
       }
     }
